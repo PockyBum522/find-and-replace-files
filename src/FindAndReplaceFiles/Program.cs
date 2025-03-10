@@ -24,6 +24,36 @@ public static class Program
         renameFilesRecursively(topLevelDirectory, filenameNeedle, filenameReplace);
 
         // Depth-first recursively walk all files and replace needle in directories
+        replaceInDirectoryNamesRecursively(topLevelDirectory, filenameNeedle, filenameReplace);
+    }
+
+    private static void replaceInDirectoryNamesRecursively(string topLevelDirectory, string filenameNeedle, string filenameReplace)
+    {
+        foreach (var directoryPath in Directory.GetDirectories(topLevelDirectory))
+        {
+            var directoryName = Path.GetFileName(directoryPath);
+            
+            if (directoryName.Contains(filenameNeedle, StringComparison.OrdinalIgnoreCase))
+            {
+                
+                var fileParentDirectory = Path.GetDirectoryName(directoryPath);
+            
+                var newFullPath = Path.Join(fileParentDirectory, directoryName.Replace(filenameNeedle, filenameReplace, StringComparison.InvariantCultureIgnoreCase));
+                
+                Console.WriteLine();
+                Console.WriteLine("Renaming:");
+                Console.WriteLine($"{directoryPath} to:");
+                Console.WriteLine(newFullPath);
+                
+                Directory.Move(directoryPath, newFullPath);
+            }
+        }
+
+        // Now that we've renamed any matching, run recursively so it can act on the new names/paths
+        foreach (var directoryPath in Directory.GetDirectories(topLevelDirectory))
+        {
+            replaceInDirectoryNamesRecursively(directoryPath, filenameNeedle, filenameReplace);
+        }
     }
 
     private static void renameFilesRecursively(string topLevelDirectory, string filenameNeedle, string filenameReplace)
