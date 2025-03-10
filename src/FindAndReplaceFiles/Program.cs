@@ -21,9 +21,37 @@ public static class Program
         replaceContentRecursively(topLevelDirectory, fileContentNeedle, fileContentReplace, validFileExtensions);
 
         // Recursively walk all files and replace filenames in files only
-
+        renameFilesRecursively(topLevelDirectory, filenameNeedle, filenameReplace);
 
         // Depth-first recursively walk all files and replace needle in directories
+    }
+
+    private static void renameFilesRecursively(string topLevelDirectory, string filenameNeedle, string filenameReplace)
+    {
+        foreach (var directoryPath in Directory.GetDirectories(topLevelDirectory))
+        {
+            renameFilesRecursively(directoryPath, filenameNeedle, filenameReplace);
+        }
+
+        foreach (var filePath in Directory.GetFiles(topLevelDirectory))
+        {
+            var fileName = Path.GetFileName(filePath);
+            
+            if (!fileName.Contains(filenameNeedle, StringComparison.InvariantCultureIgnoreCase)) continue;
+            
+            // Otherwise, rename file
+            
+            var fileParentDirectory = Path.GetDirectoryName(filePath);
+            
+            var newFullPath = Path.Join(fileParentDirectory, fileName.Replace(filenameNeedle, filenameReplace, StringComparison.InvariantCultureIgnoreCase));
+
+            Console.WriteLine();
+            Console.WriteLine("Renaming:");
+            Console.WriteLine($"{filePath} to:");
+            Console.WriteLine(newFullPath);
+            
+            File.Move(filePath, newFullPath);
+        }
     }
 
     private static void cleanBinObjFoldersRecursively(string topLevelDirectory)
