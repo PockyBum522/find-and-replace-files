@@ -12,11 +12,13 @@ public static class Program
         var fileContentNeedle = "RotovapCSharpPiController";
         var fileContentReplace = "RunDnc";    
         
+        List<string> validFileExtensions = [".cs", ".sln", ".csproj", ".axaml", ".xml", ".json", ".html", ".manifest", ".plist", ".xib"];
+        
         // Clean bin and obj files
         cleanBinObjFoldersRecursively(topLevelDirectory);
         
         // Recursively walk all files and replace found matching content
-        replaceContentRecursively(topLevelDirectory, fileContentNeedle, fileContentReplace);
+        replaceContentRecursively(topLevelDirectory, fileContentNeedle, fileContentReplace, validFileExtensions);
 
         // Recursively walk all files and replace filenames in files only
 
@@ -40,16 +42,34 @@ public static class Program
         }
     }
 
-    private static void replaceContentRecursively(string topLevelDirectory, string fileContentNeedle, string fileContentReplace)
+    private static void replaceContentRecursively(string topLevelDirectory, string fileContentNeedle, string fileContentReplace, List<string> validFileExtensions)
     {
         foreach (var directoryPath in Directory.GetDirectories(topLevelDirectory))
         {
-            replaceContentRecursively(directoryPath, fileContentNeedle, fileContentReplace);
+            replaceContentRecursively(directoryPath, fileContentNeedle, fileContentReplace, validFileExtensions);
         }
 
         foreach (var filePath in Directory.GetFiles(topLevelDirectory))
         {
+            if (!fileExtensionIsValid(filePath, validFileExtensions)) continue; 
             
+            var fileContent = File.ReadAllText(filePath);
+            
+            fileContent = fileContent.Replace(fileContentNeedle, fileContentReplace);
+            
+            File.WriteAllText(filePath, fileContent);
         }
+    }
+
+    private static bool fileExtensionIsValid(string filePath, List<string> validFileExtensions)
+    {
+        var isValid = false;
+
+        foreach (var fileExtension in validFileExtensions)
+        {
+            if (filePath.EndsWith(fileExtension, StringComparison.InvariantCultureIgnoreCase)) isValid = true;
+        }
+        
+        return isValid;
     }
 }
